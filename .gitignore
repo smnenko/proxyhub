@@ -1,0 +1,5 @@
+.idea
+venv
+**/__pycache__/
+parsed_proxies.txt
+proxies.json
