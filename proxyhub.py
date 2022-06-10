@@ -4,9 +4,13 @@ import re
 import threading
 import logging
 from datetime import datetime, timedelta
+from pathlib import Path
 from random import choice
 
 import requests
+
+
+PATH = Path().resolve()
 
 
 logger = logging.getLogger('PROXYHUB')
@@ -45,13 +49,12 @@ class ProxyParser:
         logger.info(f'Total parsed {len(self.proxies)} proxies')
 
     def save(self):
-        with open(self.output_file, 'w') as f:
+        with open(PATH.joinpath(self.output_file), 'w') as f:
             f.writelines([f'{i}\n' for i in set(self.proxies)])
         logger.info(f'Proxies was saved in {self.output_file}')
 
 
 class ProxyChecker:
-
     TYPES = [
         'http',
         'https',
@@ -68,7 +71,7 @@ class ProxyChecker:
         self._setup()
 
     def _setup(self):
-        with open(self.parsed_proxies_file) as f:
+        with open(PATH.joinpath(self.parsed_proxies_file)) as f:
             self.parsed = [line.rstrip() for line in f]
 
     @staticmethod
@@ -120,7 +123,7 @@ class ProxyChecker:
         logger.info(f'{len(self.proxies.keys()) - 1} was checked successfully')
 
     def save(self):
-        json.dump(self.proxies, open(self.output_file, 'w'), indent=4, default=str)
+        json.dump(self.proxies, open(PATH.joinpath(self.output_file), 'w'), indent=4, default=str)
 
 
 class ProxyHub:
@@ -138,8 +141,9 @@ class ProxyHub:
         self._setup()
 
     def _setup(self):
-        if not os.path.exists(self.checked_proxies_json_file):
-            self.refresh()
+        if not os.path.exists(PATH.joinpath(self.checked_proxies_json_file)):
+            with open(PATH.joinpath(self.checked_proxies_json_file), 'w') as f:
+                json.dump({'updated_at': f'{datetime.min}.000'}, f)
 
     def _are_proxies_alive(self, parsed_datetime: str):
         return (
